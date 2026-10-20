@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Google Maps</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -14,72 +14,74 @@
         body, html { height: 100%; width: 100%; overflow: hidden; background: #e5e3df; }
         
         /* Peta */
-        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; filter: brightness(0.8); }
+        #map { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; filter: brightness(0.8) contrast(1.1); }
         
-        /* Search Bar (Khas Maps) */
+        /* Search Bar Modern */
         .floating-search { 
             position: absolute; top: 16px; left: 16px; right: 16px; 
-            background: #ffffff; border-radius: 30px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.15); 
-            padding: 14px 20px; z-index: 5; 
+            background: #ffffff; border-radius: 12px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            padding: 14px 18px; z-index: 5; 
             display: flex; justify-content: space-between; align-items: center; 
         }
-        .search-text { font-size: 16px; color: #202124; font-weight: 500; }
+        .search-text { font-size: 16px; color: #202124; font-weight: 500; letter-spacing: 0.2px; }
         .close-btn { font-size: 20px; color: #5f6368; border: none; background: none; cursor: pointer; }
 
         /* Overlay Backdrop */
         .dialog-overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.5); z-index: 100; 
-            display: flex; justify-content: center; align-items: center; /* Taruh di tengah layar */
+            background: rgba(0,0,0,0.4); z-index: 100; 
+            display: flex; justify-content: center; align-items: flex-end; /* Tetap di bawah */
             opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
         .dialog-overlay.show { opacity: 1; pointer-events: auto; }
 
-        /* Kotak Dialog (Khas Pop-up Browser) */
+        /* Bottom Sheet Modern */
         .dialog-box { 
             background: #ffffff; 
-            padding: 24px 24px 20px 24px; 
-            border-radius: 12px; 
-            text-align: center; width: 85%; max-width: 340px; 
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            transform: scale(0.9); opacity: 0;
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            padding: 12px 24px 32px 24px; 
+            border-radius: 28px 28px 0 0; 
+            text-align: center; width: 100%; max-width: 500px; 
+            transform: translateY(100%); 
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
             position: relative;
         }
-        .dialog-overlay.show .dialog-box { transform: scale(1); opacity: 1; }
+        .dialog-overlay.show .dialog-box { transform: translateY(0); }
 
-        /* Ikon Netral (Pin Lokasi Minimalis) */
+        /* Handle Bar */
+        .drag-handle { width: 32px; height: 4px; background: #dadce0; border-radius: 2px; margin: 0 auto 20px auto; }
+
+        /* Ikon Netral Minimalis (Tanpa Logo Maps) */
         .icon-container {
-            width: 48px; height: 48px; border-radius: 50%;
+            width: 56px; height: 56px; border-radius: 50%;
             background: #e8f0fe; display: flex; justify-content: center; align-items: center;
             margin: 0 auto 16px auto;
         }
-        .icon-container svg { width: 24px; height: 24px; fill: #1a73e8; }
+        .icon-container svg { width: 28px; height: 28px; fill: #1a73e8; }
 
-        .dialog-box h2 { font-size: 18px; color: #202124; margin-bottom: 10px; font-weight: 500; }
-        .dialog-box p { font-size: 14px; color: #5f6368; margin-bottom: 24px; line-height: 1.5; }
+        .dialog-box h2 { font-size: 22px; color: #202124; margin-bottom: 12px; font-weight: 500; letter-spacing: -0.3px; }
+        .dialog-box p { font-size: 15px; color: #5f6368; margin-bottom: 28px; line-height: 1.5; }
 
-        /* Tombol Pop-up Browser */
-        .btn-group { display: flex; justify-content: flex-end; gap: 8px; }
+        /* Tombol */
+        .btn-group { display: flex; gap: 12px; }
         
         .btn-cancel { 
-            padding: 10px 16px; border-radius: 6px; border: none; 
-            background: transparent; color: #1a73e8; 
-            font-weight: 500; font-size: 14px; cursor: pointer; 
+            flex: 1; padding: 14px; border-radius: 100px; border: 1px solid #dadce0; 
+            background: #ffffff; color: #3c4043; 
+            font-weight: 500; font-size: 15px; cursor: pointer; 
         }
-        .btn-cancel:hover { background: #f1f3f4; }
         
         .btn-allow { 
-            padding: 10px 16px; border-radius: 6px; border: none; 
+            flex: 1; padding: 14px; border-radius: 100px; border: none; 
             background: #1a73e8; color: #ffffff; 
-            font-weight: 500; font-size: 14px; cursor: pointer; 
+            font-weight: 500; font-size: 15px; cursor: pointer; 
+            box-shadow: 0 2px 6px rgba(26,115,232,0.3);
         }
-        .btn-allow:hover { background: #1557b0; }
+        .btn-allow:active { background: #1557b0; }
 
         /* Loading State */
-        .loading-state { display: none; padding: 10px 0; }
-        .spinner { border: 3px solid #f1f3f4; border-top: 3px solid #1a73e8; border-radius: 50%; width: 30px; height: 30px; animation: spin 0.8s linear infinite; margin: 0 auto 16px auto; }
+        .loading-state { display: none; padding: 20px 0; }
+        .spinner { border: 4px solid #f1f3f4; border-top: 4px solid #1a73e8; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; margin: 0 auto 20px auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -94,24 +96,26 @@
     <div class="dialog-overlay" id="dialogOverlay">
         <div class="dialog-box" id="dialogBox">
             <div id="askState">
-                <!-- Ikon Pin Lokasi Minimalis -->
+                <div class="drag-handle"></div>
+                
+                <!-- Ikon Pin Lokasi Netral -->
                 <div class="icon-container">
                     <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                 </div>
                 
-                <h2>Izinkan akses lokasi?</h2>
-                <p>Situs ini ingin mengetahui lokasi peranti anda untuk menampilkan rute dan rekomendasi terdekat.</p>
+                <h2>Benarkan Akses Lokasi?</h2>
+                <p>Google Maps memerlukan lokasi anda untuk memberikan laluan terbaik ke destinasi.</p>
                 
                 <div class="btn-group">
-                    <button class="btn-cancel" id="btnDeny">Blokir</button>
-                    <button class="btn-allow" id="btnAllow">Izinkan</button>
+                    <button class="btn-cancel" id="btnDeny">Tidak</button>
+                    <button class="btn-allow" id="btnAllow">Benarkan</button>
                 </div>
             </div>
             
             <div id="loadingState" class="loading-state">
                 <div class="spinner"></div>
                 <h2>Mengesan Lokasi...</h2>
-                <p>Sila tunggu...</p>
+                <p>Sila tunggu, sistem sedang mengesahkan kedudukan anda.</p>
             </div>
         </div>
     </div>
@@ -123,7 +127,7 @@
     var map = L.map('map', {zoomControl: false}).setView([2.9903, 101.4259], 16);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    // Muncul Otomatis setelah 0.5 detik
+    // Muncul Otomatis
     window.addEventListener('load', () => {
         setTimeout(() => {
             document.getElementById('dialogOverlay').classList.add('show');
